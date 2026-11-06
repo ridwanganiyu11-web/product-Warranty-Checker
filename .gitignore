@@ -7,6 +7,7 @@
 /.next/
 /out/
 /build
+/data/
 
 # Environment variables (NEVER commit private keys!)
 .env
@@ -23,3 +24,4 @@ yarn-error.log*
 *.pem
 *.tsbuildinfo
 next-env.d.ts
+

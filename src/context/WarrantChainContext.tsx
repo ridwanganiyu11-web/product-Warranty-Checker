@@ -8,6 +8,8 @@ import React, {
   useCallback,
 } from 'react';
 import { createAppKit, useAppKit } from '@reown/appkit/react';
+import { type AppKitNetwork } from '@reown/appkit/networks';
+import { WagmiAdapter } from '@reown/appkit-adapter-wagmi';
 import {
   WagmiProvider,
   useAccount,
@@ -20,10 +22,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createPublicClient, http } from 'viem';
 import {
   botchainTestnet,
-  wagmiAdapter,
-  wagmiConfig,
   projectId,
-  networks,
   BOTCHAIN_CHAIN_ID,
   BOTCHAIN_RPC_URL,
   hashSerial,
@@ -34,6 +33,16 @@ import {
   PRODUCT_WARRANTY_REGISTRY_BYTECODE,
 } from '@/contracts/ProductWarrantyRegistryABI';
 import { BusinessProfile, WarrantyRecord } from '@/lib/types';
+
+const networks: [AppKitNetwork, ...AppKitNetwork[]] = [botchainTestnet];
+
+const wagmiAdapter = new WagmiAdapter({
+  ssr: true,
+  projectId,
+  networks,
+});
+
+const wagmiConfig = wagmiAdapter.wagmiConfig;
 
 // Initialize Reown AppKit once on client/module load
 const metadata = {

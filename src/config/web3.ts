@@ -1,5 +1,4 @@
-import { defineChain, type AppKitNetwork } from '@reown/appkit/networks';
-import { WagmiAdapter } from '@reown/appkit-adapter-wagmi';
+import { defineChain } from '@reown/appkit/networks';
 import { keccak256, toBytes } from 'viem';
 
 export const BOTCHAIN_CHAIN_ID = 968;
@@ -37,16 +36,6 @@ export const botchainTestnet = defineChain({
 // Project ID for Reown AppKit
 export const projectId =
   process.env.NEXT_PUBLIC_REOWN_PROJECT_ID || '05e6edf1e0ff1ba8a6a26c95abd820bf';
-
-export const networks: [AppKitNetwork, ...AppKitNetwork[]] = [botchainTestnet];
-
-export const wagmiAdapter = new WagmiAdapter({
-  ssr: true,
-  projectId,
-  networks,
-});
-
-export const wagmiConfig = wagmiAdapter.wagmiConfig;
 
 /**
  * Normalize a serial number before hashing or comparison:
