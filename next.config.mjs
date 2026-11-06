@@ -24,6 +24,7 @@ const nextConfig = {
       '@gemini-wallet/core': stubPath,
       '@safe-global/safe-apps-sdk': stubPath,
       '@safe-global/safe-apps-provider': stubPath,
+      '@metamask/connect-evm': stubPath,
       porto: stubPath,
       'porto/internal': stubPath,
     };
