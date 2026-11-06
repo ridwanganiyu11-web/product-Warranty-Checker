@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
 import { INITIAL_BUSINESSES, INITIAL_WARRANTIES } from '@/lib/seed-data';
 import { BusinessProfile, WarrantyRecord } from '@/lib/types';
@@ -11,37 +12,46 @@ interface DatabaseSchema {
   warranties: WarrantyRecord[];
 }
 
-const DATA_DIR = path.join(process.cwd(), 'data');
-const DB_PATH = path.join(DATA_DIR, 'db.json');
+const DATA_DIR = process.env.VERCEL
+  ? os.tmpdir()
+  : path.join(process.cwd(), 'data');
+const DB_PATH = path.join(DATA_DIR, 'warrantchain-db.json');
+
+let memoryDb: DatabaseSchema | null = null;
 
 function readDb(): DatabaseSchema {
+  if (memoryDb) return memoryDb;
+  const fallback: DatabaseSchema = {
+    contractAddress:
+      process.env.NEXT_PUBLIC_CONTRACT_ADDRESS ||
+      '0x618fd1d309b185aB449E528cD8cCb8E7E1ea90CC',
+    businesses: [...INITIAL_BUSINESSES],
+    warranties: [...INITIAL_WARRANTIES],
+  };
   try {
     if (!fs.existsSync(DB_PATH)) {
       fs.mkdirSync(DATA_DIR, { recursive: true });
-      const initial: DatabaseSchema = {
-        contractAddress:
-          process.env.NEXT_PUBLIC_CONTRACT_ADDRESS ||
-          '0x618fd1d309b185aB449E528cD8cCb8E7E1ea90CC',
-        businesses: INITIAL_BUSINESSES,
-        warranties: INITIAL_WARRANTIES,
-      };
-      fs.writeFileSync(DB_PATH, JSON.stringify(initial, null, 2), 'utf8');
-      return initial;
+      fs.writeFileSync(DB_PATH, JSON.stringify(fallback, null, 2), 'utf8');
+      memoryDb = fallback;
+      return fallback;
     }
     const raw = fs.readFileSync(DB_PATH, 'utf8');
-    return JSON.parse(raw) as DatabaseSchema;
+    memoryDb = JSON.parse(raw) as DatabaseSchema;
+    return memoryDb;
   } catch {
-    return {
-      contractAddress: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '',
-      businesses: INITIAL_BUSINESSES,
-      warranties: INITIAL_WARRANTIES,
-    };
+    memoryDb = fallback;
+    return fallback;
   }
 }
 
 function writeDb(db: DatabaseSchema) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-  fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2), 'utf8');
+  memoryDb = db;
+  try {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+    fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2), 'utf8');
+  } catch {
+    // Serverless read-only fallback handled via memoryDb
+  }
 }
 
 export async function GET(req: NextRequest) {
